@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "Resume Analyzer",
+			"path": ".."
+		},
+		{
+			"name": "frontend",
+			"path": "../../../Downloads/resume-analyzer/resume-analyzer/frontend"
+		}
+	],
+	"settings": {}
+}
