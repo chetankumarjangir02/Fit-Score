@@ -60,14 +60,23 @@ def build_chain():
 
 chain=build_chain()
 
-app=FastAPI(title="Resume Analyzer")
+app=FastAPI(title="FitScore", version="1.0.0")
+
+ALLOWED_ORIGINS=[
+    "https://fitscore.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# Allow any origin in local dev so you can preview on a device IP or a tunnel.
+if os.getenv("ALLOW_ANY_ORIGIN","0")=="1":
+    ALLOWED_ORIGINS=["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True, 
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["POST","GET","OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 def extract_text_from_pdf(data:bytes)->str:

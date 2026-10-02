@@ -112,6 +112,12 @@ Open `http://localhost:5173`.
 | :-- | :-- | :-- |
 | `VITE_API_URL` | `http://localhost:8000` | Backend base URL |
 
+### Backend — runtime flags
+
+| Variable | Default | Purpose |
+| :-- | :-- | :-- |
+| `ALLOW_ANY_ORIGIN` | `0` | Set to `1` to disable CORS restrictions. Local dev only. |
+
 ---
 
 ## API
@@ -153,7 +159,79 @@ Open `http://localhost:5173`.
 
 ---
 
-## How it works
+## Deploying to Vercel
+
+The backend is a Python serverless function and the frontend is a static build — they deploy as
+**two separate Vercel projects** on one account.
+
+```
+Backend/   →  fitscore-api.vercel.app    Python function
+frontend/  →  fitscore.vercel.app        static site
+```
+
+Dependencies come to **84 MB** with no `torch` (the HF integration calls the inference API over
+HTTP rather than downloading weights), so it fits inside Vercel's 250 MB function limit.
+
+### 1 · Backend
+
+```bash
+cd Backend
+npx vercel
+```
+
+Decline the "modify these settings?" prompt — `api/index.py` and `vercel.json` are already
+configured. Name the project `fitscore-api`.
+
+Add the token to **production only** — a preview token would expose your key to anyone with the
+preview URL:
+
+```bash
+npx vercel env add HUGGINGFACEHUB_API_TOKEN production
+npx vercel --prod
+```
+
+Verify before touching the frontend:
+
+```bash
+curl https://fitscore-api.vercel.app/health   # {"status":"healthy"}
+```
+
+### 2 · Frontend
+
+```bash
+cd frontend
+npx vercel
+npx vercel env add VITE_API_URL production
+# value: https://fitscore-api.vercel.app
+npx vercel --prod
+```
+
+### 3 · Whitelist your origin
+
+`Backend/main.py` restricts CORS to your deployed frontend plus localhost. After your first
+frontend deploy you'll know the exact URL — add it to `ALLOWED_ORIGINS`:
+
+```python
+ALLOWED_ORIGINS = [
+    "https://fitscore.vercel.app",
+    "http://localhost:5173",
+]
+```
+
+Then `cd Backend && npx vercel --prod`.
+
+Setting `ALLOW_ANY_ORIGIN=1` opens it back up for testing on a device IP or a tunnel. Never
+leave that on in production — it lets anyone call the API and burn your HF quota.
+
+### Known limits
+
+- **Timeout.** Llama takes 10–30s to respond. Hobby plan caps functions at 60s with a 10s cold
+  start, so you're close to the edge. Persistent `504`s mean you need a paid plan and
+  `"maxDuration"` in `vercel.json`.
+- **Free-tier queueing.** The free HF inference tier queues when busy, so a slow day is possible.
+- **Cold starts.** First request after an idle period pays the full cold start.
+
+---
 
 ```
  resume.pdf ──► pypdf ──► text ─┐
@@ -179,9 +257,13 @@ Resume Analyzer/
 ├── Backend/
 │   ├── main.py            # FastAPI app, prompt, chain, routes
 │   ├── requirements.txt
+│   ├── vercel.json        # rewrites everything to the function
+│   ├── api/
+│   │   └── index.py       # Vercel serverless entry point
 │   └── .env               # your keys — never commit this
 └── frontend/
     ├── index.html
+    ├── vercel.json
     └── src/
         ├── main.jsx
         ├── App.jsx        # all UI components
@@ -232,3 +314,12 @@ only; OCR would need to be added.
 **Blank page, no error** — the model returns malformed JSON and the parser throws. The
 `502` response carries the first 200 characters of the failure, which usually points at a
 token limit or a truncated response.
+
+**CORS error in the browser console** — your frontend's domain isn't in `ALLOWED_ORIGINS`.
+Add it in `Backend/main.py` and redeploy the backend.
+
+**Vercel returns `404` on every route** — the API isn't rewriting to the function. Confirm
+`Backend/vercel.json` points at `/api/index`.
+
+**`504 Gateway Timeout`** — the model took longer than the function timeout. See
+[Known limits](#known-limits).
