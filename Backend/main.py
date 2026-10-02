@@ -64,6 +64,7 @@ app=FastAPI(title="FitScore", version="1.0.0")
 
 ALLOWED_ORIGINS=[
     "https://fitscore.vercel.app",
+    "https://fit-score-ke8y.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
