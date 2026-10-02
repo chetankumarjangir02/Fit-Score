@@ -1,0 +1,25 @@
+# ---- secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ---- node ----
+node_modules/
+dist/
+.vite/
+*.local
+
+# ---- editors / os ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
