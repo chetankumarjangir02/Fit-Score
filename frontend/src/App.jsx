@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon, ICONS } from "./Icon.jsx";
+import { Link } from "./router.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const MIN_JD = 50;
@@ -11,38 +13,15 @@ const STAGES = [
   "Scoring and writing fixes",
 ];
 
-/* ---------------------------------------------------------------- icons */
-
-function Icon({ d, size = 24, ...rest }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...rest}
-    >
-      <path d={d} />
-    </svg>
-  );
-}
-
-const ICONS = {
-  upload: "M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v2.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V16",
-  spark: "M4 19.5V16m0-5.5V4m8 15.5V11m0-4.5V4m8 11.5V11m0-3.5V4M1.5 14h4M9.5 8.5h4M17.5 8.5h4",
-  close: "M6 6l12 12M18 6L6 18",
-  copy: "M9 9h9a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1v-9a1 1 0 011-1zM5 15V5a1 1 0 011-1h9",
-  check: "M4 12.5l5 5L20 6.5",
-  alert: "M12 8v5m0 3.5h.01M10.3 3.9L2.6 17.2A2 2 0 004.3 20.2h15.4a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",
-  reset: "M3.5 12a8.5 8.5 0 108.5-8.5A8.4 8.4 0 005.6 6.6M3.5 4v4h4",
-  print:
-    "M6.5 9V3.5h11V9M6.5 17.5h-2A1.5 1.5 0 013 16V11a1.5 1.5 0 011.5-1.5h15A1.5 1.5 0 0121 11v5a1.5 1.5 0 01-1.5 1.5h-2M6.5 14h11v6.5h-11z",
-};
+/* the shape the placeholder sheet previews — same order as the real report */
+const SHEET_SECTIONS = [
+  "Skills you already have",
+  "Skills to close",
+  "Why you stand out",
+  "Changes to improve your fit",
+  "Fix before you apply",
+  "ATS keywords to mirror",
+];
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -91,7 +70,70 @@ function toneFor(score) {
   return { key: "low", label: "Weak match" };
 }
 
-/* ---------------------------------------------------------------- pieces */
+/** turn a failed response into something the person can act on */
+async function readFailure(res) {
+  const raw = await res.text().catch(() => "");
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    /* not JSON — the server crashed or a proxy answered */
+  }
+
+  const detail = Array.isArray(data.detail)
+    ? data.detail.map((d) => d.msg || JSON.stringify(d)).join(" ")
+    : data.detail;
+
+  if (typeof detail === "string" && detail.trim()) return detail;
+
+  if (raw && raw.length < 240 && !raw.trimStart().startsWith("<")) return raw;
+
+  if (res.status === 404) return "No /analyze endpoint on the server — is the backend running main.py?";
+  if (res.status === 413) return "The server rejected the file as too large.";
+  if (res.status === 422) return "The server could not parse the request (422).";
+  if (res.status >= 500) return `Server failed (${res.status}) — the traceback is in the backend console.`;
+
+  return `Request failed with status ${res.status}.`;
+}
+
+/* ---------------------------------------------------------------- app bar */
+
+function AppBar({ ready }) {
+  const [lifted, setLifted] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setLifted(window.scrollY > 6);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <header className={`appbar${lifted ? " lifted" : ""}`}>
+      <div className="appbar-in">
+        <Link to="/" className="appbar-mark" aria-label="FitScore home">
+          Fit<em>Score</em>
+        </Link>
+        <span className="appbar-sep" aria-hidden="true" />
+        <span className="appbar-tag">Analyzer</span>
+
+        {ready && (
+          <span className="appbar-pill">
+            <Icon d={ICONS.check} size={12} />
+            Report ready
+          </span>
+        )}
+
+        <Link to="/" className="appbar-back">
+          <Icon d={ICONS.arrow} size={13} />
+          Overview
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+/* ---------------------------------------------------------------- dropzone */
 
 function Dropzone({ file, onSelect, onError }) {
   const [over, setOver] = useState(false);
@@ -122,7 +164,7 @@ function Dropzone({ file, onSelect, onError }) {
   return (
     <div
       className={`drop spot${over ? " over" : ""}${file ? " filled" : ""}`}
-onMouseMove={spotlight}
+      onMouseMove={spotlight}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -169,7 +211,7 @@ onMouseMove={spotlight}
             <Icon d={ICONS.upload} size={22} />
           </div>
           <p className="drop-title">Drop your resume here</p>
-          <p className="drop-sub">PDF only · up to {MAX_FILE_MB} MB · stays on your machine</p>
+          <p className="drop-sub">PDF only · up to {MAX_FILE_MB} MB</p>
           <span className="drop-cta">
             Browse files
             <Icon d={ICONS.arrow} size={13} />
@@ -179,6 +221,8 @@ onMouseMove={spotlight}
     </div>
   );
 }
+
+/* ---------------------------------------------------------------- gauge */
 
 function Gauge({ score, animate }) {
   const shown = useCountUp(score, animate);
@@ -190,7 +234,6 @@ function Gauge({ score, animate }) {
   return (
     <div className={`gauge ${tone.key}`} role="img" aria-label={`Match score ${score} out of 100`}>
       <svg viewBox="0 0 128 128">
-        {/* quarter ticks, like a measuring dial */}
         <g className="gauge-ticks">
           {[0, 90, 180, 270].map((deg) => (
             <line
@@ -220,6 +263,8 @@ function Gauge({ score, animate }) {
     </div>
   );
 }
+
+/* ---------------------------------------------------------------- sections */
 
 function Chips({ items, tone, onCopy, copied }) {
   if (!items?.length) return <p className="none">Nothing detected here.</p>;
@@ -257,9 +302,45 @@ function Rows({ items, tone }) {
   );
 }
 
-function Section({ index, title, count, children }) {
+const RECOMMENDATION_CATEGORIES = {
+  resume_edit: "Resume edit",
+  skill_to_develop: "Skill to develop",
+  project_to_build: "Project to build",
+  experience_to_highlight: "Experience to highlight",
+};
+
+function Recommendations({ items }) {
+  if (!items?.length) {
+    return <p className="none">No additional changes suggested for this role.</p>;
+  }
+
   return (
-    <section className="block">
+    <ol className="recommendations stagger">
+      {[...items]
+        .sort((a, b) => a.priority - b.priority)
+        .map((item, i) => (
+          <li key={`${item.priority}-${item.action}-${i}`} style={{ "--i": Math.min(i, 14) }}>
+            <div className="recommendation-meta">
+              <span className="recommendation-priority">Priority {item.priority}</span>
+              <span className="recommendation-category">
+                {RECOMMENDATION_CATEGORIES[item.category] || item.category}
+              </span>
+            </div>
+            <p className="recommendation-action">{item.action}</p>
+            <p className="recommendation-reason">{item.reason}</p>
+            <p className="recommendation-requirement">
+              <strong>Role requirement</strong>
+              {item.job_requirement}
+            </p>
+          </li>
+        ))}
+    </ol>
+  );
+}
+
+function Section({ index, title, count, className = "", children }) {
+  return (
+    <section className={`block ${className}`.trim()}>
       <div className="sec">
         <span className="sec-index">{index}</span>
         <h3>{title}</h3>
@@ -297,6 +378,84 @@ function Coverage({ result }) {
           {result.ats_keywords?.length ?? 0} keywords
         </span>
       </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- waiting */
+
+/** the empty state is a proof of the layout, not another pitch */
+function Sheet() {
+  return (
+    <div className="sheet" aria-hidden="true">
+      <div className="sheet-head">
+        <span className="sheet-dial" />
+        <div className="sheet-lines">
+          <i className="w80" />
+          <i className="w100" />
+          <i className="w60" />
+        </div>
+      </div>
+
+      {SHEET_SECTIONS.map((label) => (
+        <div className="sheet-sec" key={label}>
+          <span className="sheet-label">{label}</span>
+          <div className="sheet-chips">
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Elapsed({ run }) {
+  const [sec, setSec] = useState(0);
+
+  useEffect(() => {
+    if (!run) {
+      setSec(0);
+      return undefined;
+    }
+    const id = setInterval(() => setSec((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [run]);
+
+  const mm = String(Math.floor(sec / 60)).padStart(2, "0");
+  const ss = String(sec % 60).padStart(2, "0");
+  return <span className="elapsed">{`${mm}:${ss}`}</span>;
+}
+
+function Waiting({ stage, loading }) {
+  return (
+    <div className="loading">
+      <div className="load-head">
+        <div className="scan" aria-hidden="true" />
+        <span className="load-meta">
+          <span className="load-step">
+            Step {stage + 1} / {STAGES.length}
+          </span>
+          <Elapsed run={loading} />
+        </span>
+      </div>
+
+      <ul className="stage-list">
+        {STAGES.map((label, i) => (
+          <li key={label} className={i < stage ? "done" : i === stage ? "active" : ""}>
+            <span className="stage-ico">
+              {i < stage && <Icon d={ICONS.check} size={11} />}
+            </span>
+            {label}
+          </li>
+        ))}
+      </ul>
+
+      <p className="none load-note">
+        Reading takes 10–30 seconds. Stay on this tab — nothing is stored either way.
+      </p>
     </div>
   );
 }
@@ -359,8 +518,9 @@ export default function App() {
       body.append("job_description", jd);
 
       const res = await fetch(`${API_URL}/analyze`, { method: "POST", body });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.detail || "Something went wrong.");
+      if (!res.ok) throw new Error(await readFailure(res));
+      const data = await res.json().catch(() => null);
+      if (!data) throw new Error("The server sent a response that wasn't a report.");
 
       setResult(data);
       requestAnimationFrame(() =>
@@ -377,13 +537,6 @@ export default function App() {
     }
   }
 
-  function reset() {
-    setResult(null);
-    setError("");
-    setFile(null);
-    setCopied(null);
-  }
-
   const tone = result ? toneFor(result.match_score) : null;
 
   return (
@@ -395,38 +548,22 @@ export default function App() {
       </div>
       <div className="grain" aria-hidden="true" />
 
-      <div className="page">
-        <header className="masthead">
-          <div>
-            <h1 className="wordmark">
-              Fit<em>Score</em>
-            </h1>
-            <p className="lede">
-              Know your fit, before you apply. An honest read on where your resume clears the
-              bar — what you already have, what the role wants that you are missing, and the
-              keywords applicant tracking systems scan for.
-            </p>
-          </div>
+      <AppBar ready={Boolean(result)} />
 
-          <div className="masthead-meta">
-            <div className="stat">
-              <b>0–100</b>
-              <span className="label">Match score</span>
-            </div>
-            <div className="stat">
-              <b>~20s</b>
-              <span className="label">Analysis</span>
-            </div>
-            <div className="stat">
-              <b>PDF</b>
-              <span className="label">Input</span>
-            </div>
-          </div>
-        </header>
+      <div className="page">
+        <div className="ws-head">
+          <p className="ws-eyebrow">
+            <span className="dot" />
+            Resume × job description
+          </p>
+          <h1 className="ws-title">
+            Read your resume against <em>one</em> posting.
+          </h1>
+        </div>
 
         <main className="layout">
-          {/* ---------------- input column ---------------- */}
-          <section className="panel glass spot" onMouseMove={spotlight}>
+          {/* ---------------- input rail ---------------- */}
+          <section className="panel glass spot rail" onMouseMove={spotlight}>
             <div className="stack">
               <div>
                 <div className="sec">
@@ -480,7 +617,7 @@ export default function App() {
                 ) : (
                   <>
                     <Icon d={ICONS.spark} size={16} />
-                    Analyze resume
+                    {result ? "Analyze again" : "Analyze resume"}
                   </>
                 )}
               </button>
@@ -494,42 +631,19 @@ export default function App() {
             </div>
           </section>
 
-          {/* ---------------- result column ---------------- */}
+          {/* ---------------- report ---------------- */}
           <section className="panel glass spot proof" onMouseMove={spotlight} ref={resultRef}>
             {!result && !loading && (
               <div className="empty">
-                <div className="empty-rule" />
-                <h2>Your report appears here</h2>
-                <p>
-                  We extract what you have, what the role asks for, and exactly what to change
-                  before you hit send.
+                <Sheet />
+                <p className="empty-note">
+                  Add both inputs and the report lands here — score first, then the sections in
+                  order. Read it here or print it.
                 </p>
-                <div className="steps">
-                  <span className="step">upload</span>
-                  <span className="step">paste</span>
-                  <span className="step">read</span>
-                </div>
               </div>
             )}
 
-            {loading && (
-              <div className="loading">
-                <div className="scan" aria-hidden="true" />
-                <ul className="stage-list">
-                  {STAGES.map((label, i) => (
-                    <li key={label} className={i < stage ? "done" : i === stage ? "active" : ""}>
-                      <span className="stage-ico">
-                        {i < stage && <Icon d={ICONS.check} size={11} />}
-                      </span>
-                      {label}
-                    </li>
-                  ))}
-                </ul>
-                <p className="none" style={{ textAlign: "center" }}>
-                  Reading takes 10–30 seconds. Stay on this tab.
-                </p>
-              </div>
-            )}
+            {loading && <Waiting stage={stage} loading={loading} />}
 
             {result && (
               <div className="report stagger">
@@ -539,6 +653,7 @@ export default function App() {
                     <span className={`tag ${tone.key}`}>{tone.label}</span>
                     <p>{result.summary}</p>
                     <Coverage result={result} />
+                    <p className="report-note">Advisory only — not a hiring decision</p>
                   </div>
                 </div>
 
@@ -564,18 +679,32 @@ export default function App() {
                   <Rows items={result.strengths} tone="good" />
                 </Section>
 
-                <Section index="06" title="Fix before you apply">
+                <Section
+                  index="06"
+                  title="Changes to improve your fit"
+                  count={result.recommendations?.length}
+                  className="recommendation-section"
+                >
+                  <Recommendations items={result.recommendations} />
+                </Section>
+
+                <Section index="07" title="Fix before you apply">
                   <Rows items={result.improvements} tone="bad" />
                 </Section>
 
-                <Section index="07" title="ATS keywords to mirror" count={result.ats_keywords?.length}>
+                <Section index="08" title="ATS keywords to mirror" count={result.ats_keywords?.length}>
                   <Chips items={result.ats_keywords} tone="key" onCopy={copyChip} copied={copied} />
                 </Section>
 
                 <div className="actions">
-                  <button className="btn ghost" onClick={reset} type="button">
+                  <button
+                    className="btn ghost"
+                    onClick={handleAnalyze}
+                    disabled={!canSubmit}
+                    type="button"
+                  >
                     <Icon d={ICONS.reset} size={16} />
-                    Run another comparison
+                    Analyze again
                   </button>
                   <button className="btn ghost" onClick={() => window.print()} type="button">
                     <Icon d={ICONS.print} size={16} />
@@ -586,11 +715,6 @@ export default function App() {
             )}
           </section>
         </main>
-
-        <footer className="foot">
-          <span className="label">Private by design — nothing is stored</span>
-          <span className="label">Scores are advisory, not a hiring decision</span>
-        </footer>
       </div>
 
       <div className={`toast${toast ? " show" : ""}`} role="status">

@@ -1,6 +1,6 @@
 import os
 import io
-from typing import List
+from typing import List,Literal 
 
 from dotenv import load_dotenv
 from fastapi import FastAPI,File , Form,HTTPException, UploadFile
@@ -18,6 +18,26 @@ HF_MODEL= os.getenv("HF_MODEL", "meta-llama/Llama-3.1-8B-Instruct")
 MAX_RESUME_CHARS=12_000
 MAX_JD_CHARS=6_000
 
+class Recommendation(BaseModel):
+    priority:int=Field(
+        ge=1,
+        le=5,
+        description="Priority from 1 (most important) to 5",
+    )
+    category:Literal[
+        "resume_edit",
+        "skill_to_develop",
+        "project_to_build",
+        "experience_to_highlight",
+    ]=Field(description="Type of recommended change")
+
+    action:str=Field(description="Specific action the candidate should take")
+    reason: str = Field(
+        description="Why this action matters for the job"
+    )
+    job_requirement: str = Field(
+        description="Relevant requirement from the job description"
+    )
 class ResumeAnalysis(BaseModel):
     match_score:int =Field(description="Overall fit between resume and job, 0 to 100")
     summary:str =Field(description="Two or three sentence verdict on the fit")
@@ -26,7 +46,7 @@ class ResumeAnalysis(BaseModel):
     strengths:List[str] =Field(description="Strongest points of the resume for this role")
     improvements:List[str]=Field(description="Specific, actionable edits to improve the resume for this role")
     ats_keywords:List[str]=Field(description="Keywords from the job description to add so applicant tracking systems match it")
-
+    recommendations:List[Recommendation]=Field(description="Up to five prioritized, honest actions to improve the candidate's fit for this job")
 parser = PydanticOutputParser(pydantic_object=ResumeAnalysis)
 
 prompt=ChatPromptTemplate.from_messages(
@@ -35,7 +55,15 @@ prompt=ChatPromptTemplate.from_messages(
                     "system",
                     "You are an experienced technical recruiter. Compare the resume to the job "
                     "description honestly and concretely. Only use facts present in the resume; "
-                    "never invent experience. Reply with JSON only, no extra text.\n\n"
+                    "never invent experience, skills, projects, or achievements.\n"
+                    "Return up to five prioritized recommendations, with priority 1 being the "
+                    "most important. Tie each recommendation to a specific job requirement. "
+                    "Use category 'resume_edit' or 'experience_to_highlight' for changes based "
+                    "on experience already shown in the resume. Use 'skill_to_develop' or "
+                    "'project_to_build' only for genuine gaps; make clear these are future actions "
+                    "and must not be presented as completed experience. Do not promise that any "
+                    "change will guarantee an interview or shortlist.\n"
+                    "Reply with JSON only, no extra text.\n\n"
                     "{format_instructions}",
                 ),
                 (
@@ -50,7 +78,7 @@ def build_chain():
     endpoint=HuggingFaceEndpoint(
         repo_id=HF_MODEL,
         task="text-generation",
-        max_new_tokens=1200,
+        max_new_tokens=1800,
         temperature=0.2,
         huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
     )

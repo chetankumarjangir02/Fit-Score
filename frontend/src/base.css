@@ -84,8 +84,8 @@ body {
 
 /* optical refinement for the serif display face */
 .display,
-.wordmark,
-.empty h2,
+.appbar-mark,
+.ws-title,
 .sec h3,
 .verdict-body p {
   font-variant-ligatures: common-ligatures;
@@ -322,8 +322,8 @@ p {
   .toast,
   .btn,
   .drop,
-  .foot,
-  .masthead-meta {
+  .appbar,
+  .ws-head {
     display: none !important;
   }
 
@@ -338,10 +338,6 @@ p {
     padding: 0;
   }
 
-  .masthead {
-    border-bottom: 1.5pt solid #000;
-  }
-
   .layout {
     grid-template-columns: 1fr;
     gap: 0;
@@ -350,6 +346,10 @@ p {
   /* only the report survives to paper */
   .layout > .panel:first-child {
     display: none;
+  }
+
+  .rail {
+    position: static;
   }
 
   .glass {

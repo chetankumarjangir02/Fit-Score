@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" width="1200" height="1000" role="img" aria-label="Soft gradient bloom">
+  <defs>
+    <radialGradient id="a" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#14554c" stop-opacity=".38"/>
+      <stop offset="55%" stop-color="#14554c" stop-opacity=".12"/>
+      <stop offset="100%" stop-color="#14554c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="b" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b4a7a" stop-opacity=".26"/>
+      <stop offset="58%" stop-color="#3b4a7a" stop-opacity=".08"/>
+      <stop offset="100%" stop-color="#3b4a7a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="c" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#b09a72" stop-opacity=".3"/>
+      <stop offset="60%" stop-color="#b09a72" stop-opacity=".09"/>
+      <stop offset="100%" stop-color="#b09a72" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="d" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse cx="300" cy="250" rx="520" ry="440" fill="url(#a)"/>
+  <ellipse cx="930" cy="180" rx="430" ry="380" fill="url(#b)"/>
+  <ellipse cx="760" cy="820" rx="500" ry="400" fill="url(#c)"/>
+  <ellipse cx="140" cy="880" rx="380" ry="330" fill="url(#b)" opacity=".5"/>
+  <ellipse cx="620" cy="470" rx="330" ry="280" fill="url(#d)"/>
+
+  <!-- concentric hairlines: a measuring dial, drawn faintly -->
+  <g fill="none" stroke="#191920" stroke-opacity=".07">
+    <circle cx="600" cy="500" r="250"/>
+    <circle cx="600" cy="500" r="360"/>
+    <circle cx="600" cy="500" r="470"/>
+  </g>
+
+  <!-- crop marks -->
+  <g stroke="#191920" stroke-opacity=".16" stroke-width="1.5">
+    <path d="M40 40h26M40 40v26"/>
+    <path d="M1160 40h-26M1160 40v26"/>
+    <path d="M40 960h26M40 960v-26"/>
+    <path d="M1160 960h-26M1160 960v-26"/>
+  </g>
+</svg>

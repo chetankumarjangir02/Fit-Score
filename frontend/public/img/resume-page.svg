@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 800" width="620" height="800" role="img" aria-label="A sample resume document with highlighted skills">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f4f2ec"/>
+    </linearGradient>
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#14554c" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#14554c" stop-opacity=".16"/>
+      <stop offset="100%" stop-color="#14554c" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="sheet"><rect x="0" y="0" width="620" height="800" rx="6"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#sheet)">
+    <rect width="620" height="800" fill="url(#paper)"/>
+
+    <!-- left rail -->
+    <rect x="0" y="0" width="8" height="800" fill="#14554c" opacity=".85"/>
+    <rect x="8" y="0" width="1" height="800" fill="#191920" opacity=".12"/>
+
+    <!-- name block -->
+    <rect x="56" y="58" width="236" height="21" rx="4" fill="#191920" opacity=".86"/>
+    <rect x="56" y="90" width="150" height="10" rx="4" fill="#191920" opacity=".3"/>
+    <g opacity=".26" fill="#191920">
+      <rect x="410" y="58" width="150" height="9" rx="4"/>
+      <rect x="430" y="76" width="130" height="9" rx="4"/>
+      <rect x="398" y="94" width="162" height="9" rx="4"/>
+    </g>
+
+    <line x1="56" y1="126" x2="564" y2="126" stroke="#191920" stroke-opacity=".14"/>
+
+    <!-- section 1 -->
+    <rect x="56" y="152" width="118" height="11" rx="3" fill="#191920" opacity=".72"/>
+    <g fill="#191920" opacity=".2">
+      <rect x="56" y="184" width="330" height="8" rx="4"/>
+      <rect x="56" y="202" width="366" height="8" rx="4"/>
+      <rect x="56" y="220" width="212" height="8" rx="4"/>
+    </g>
+
+    <!-- section 2 with neutral skill indicators -->
+    <rect x="56" y="264" width="132" height="11" rx="3" fill="#191920" opacity=".72"/>
+
+    <g>
+      <rect x="56" y="294" width="86" height="24" rx="12" fill="#14554c" opacity=".14"/>
+      <rect x="56" y="294" width="86" height="24" rx="12" fill="none" stroke="#14554c" stroke-opacity=".38"/>
+      <rect x="78" y="303" width="42" height="6" rx="3" fill="#14554c" opacity=".65"/>
+    </g>
+    <g>
+      <rect x="152" y="294" width="98" height="24" rx="12" fill="#14554c" opacity=".14"/>
+      <rect x="152" y="294" width="98" height="24" rx="12" fill="none" stroke="#14554c" stroke-opacity=".38"/>
+      <rect x="180" y="303" width="42" height="6" rx="3" fill="#14554c" opacity=".65"/>
+    </g>
+    <g>
+      <rect x="260" y="294" width="96" height="24" rx="12" fill="#14554c" opacity=".14"/>
+      <rect x="260" y="294" width="96" height="24" rx="12" fill="none" stroke="#14554c" stroke-opacity=".38"/>
+      <rect x="287" y="303" width="42" height="6" rx="3" fill="#14554c" opacity=".65"/>
+    </g>
+    <g>
+      <rect x="366" y="294" width="112" height="24" rx="12" fill="#14554c" opacity=".14"/>
+      <rect x="366" y="294" width="112" height="24" rx="12" fill="none" stroke="#14554c" stroke-opacity=".38"/>
+      <rect x="401" y="303" width="42" height="6" rx="3" fill="#14554c" opacity=".65"/>
+    </g>
+
+    <g fill="#191920" opacity=".2">
+      <rect x="56" y="338" width="330" height="8" rx="4"/>
+      <rect x="56" y="356" width="290" height="8" rx="4"/>
+    </g>
+
+    <!-- dashed gap markers: what the role asks for that the resume lacks -->
+    <g>
+      <rect x="56" y="380" width="88" height="24" rx="12" fill="none" stroke="#9c3131" stroke-opacity=".55" stroke-dasharray="5 4"/>
+      <rect x="79" y="389" width="42" height="6" rx="3" fill="#9c3131" opacity=".55"/>
+    </g>
+    <g>
+      <rect x="154" y="380" width="62" height="24" rx="12" fill="none" stroke="#9c3131" stroke-opacity=".55" stroke-dasharray="5 4"/>
+      <rect x="164" y="389" width="42" height="6" rx="3" fill="#9c3131" opacity=".55"/>
+    </g>
+
+    <g fill="#191920" opacity=".2">
+      <rect x="56" y="424" width="368" height="8" rx="4"/>
+      <rect x="56" y="442" width="248" height="8" rx="4"/>
+    </g>
+
+    <!-- section 3 -->
+    <rect x="56" y="486" width="146" height="11" rx="3" fill="#191920" opacity=".72"/>
+    <g fill="#191920" opacity=".2">
+      <rect x="56" y="518" width="300" height="8" rx="4"/>
+      <rect x="56" y="536" width="352" height="8" rx="4"/>
+      <rect x="56" y="554" width="186" height="8" rx="4"/>
+      <rect x="56" y="590" width="322" height="8" rx="4"/>
+      <rect x="56" y="608" width="268" height="8" rx="4"/>
+    </g>
+
+    <!-- read sweep -->
+    <rect x="0" y="0" width="190" height="800" fill="url(#sweep)"/>
+    <rect x="188" y="0" width="1.5" height="800" fill="#14554c" opacity=".5"/>
+  </g>
+
+  <rect x="0.5" y="0.5" width="619" height="799" rx="6" fill="none" stroke="#191920" stroke-opacity=".16"/>
+</svg>
